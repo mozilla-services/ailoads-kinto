@@ -1,11 +1,10 @@
 HERE = $(shell pwd)
 BIN = $(HERE)/venv/bin
-PYTHON = $(BIN)/python3.4
+PYTHON = $(BIN)/python3
 
 INSTALL = $(BIN)/pip install
 
-KINTO_SERVER_URL = https://kinto.stage.mozaws.net:443
-KINTO_EXISTING_EMAIL =
+KINTO_SERVER_URL = https://settings.stage.mozaws.net:443
 
 .PHONY: all test build
 
@@ -14,7 +13,6 @@ all: build test
 $(PYTHON):
 	$(shell basename $(PYTHON)) -m venv $(VTENV_OPTS) venv
 	$(BIN)/pip install requests requests_hawk flake8
-	$(BIN)/pip install https://github.com/mozilla/PyFxA/archive/loadtest-tools.zip
 	$(BIN)/pip install https://github.com/tarekziade/ailoads/archive/master.zip
 build: $(PYTHON)
 
