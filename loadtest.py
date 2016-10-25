@@ -1,6 +1,7 @@
 import os
 import uuid
 import random
+
 from ailoads.fmwk import scenario, requests
 
 random = random.SystemRandom()
@@ -26,6 +27,10 @@ _BLOCKLISTS_URLS = [
     "/blocklist/3/{3550f703-e582-4d05-9a08-453d09bdfdc6}/47.0/",  # Thunderbird
     "/blocklist/3/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/47.0/",  # Firefox
 ]
+
+_HEARTBEAT_URL = "/v1/__heartbeat__"
+
+_STATUS_URL = "/v1/"
 
 
 def get_random_string(length=50,
@@ -114,3 +119,29 @@ def access_blocklist_url():
     r = conn.get(salted_url)
     r.raise_for_status()
     assert r.text.startswith('<?xml'), "Doesn't starts with an XML header."
+
+
+@scenario(5)
+def access_heartbeat_url():
+    """ Access heartbeat URL"""
+    conn = get_connection('system.Everyone')
+    url = _HEARTBEAT_URL
+    r = conn.get(url)
+    r.raise_for_status()
+    body = r.json()
+    assert "attachments" in body
+    assert "cache" in body
+    assert "permission" in body
+    assert "storage" in body
+
+
+@scenario(5)
+def access_status_url():
+    """ Access status URL """
+    conn = get_connection('system.Everyone')
+    url = _STATUS_URL
+    r = conn.get(url)
+    r.raise_for_status()
+    body = r.json()
+    assert "url" in body
+    assert "project_name" in body
