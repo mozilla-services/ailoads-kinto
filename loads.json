@@ -1,0 +1,14 @@
+{
+  "ailoads": {
+    "requirements": "requirements.txt",
+    "env": {"KINTO_SERVER_URL": "https://settings.stage.mozaws.net:443"},
+    "tests": {
+      "test": {"duration": 30,
+               "verbose": true
+      },
+      "test-heavy": {"duration": 300,
+                     "users": 10
+      }
+    }
+  }
+}
