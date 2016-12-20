@@ -23,17 +23,17 @@ test: build
 test-heavy: build
 	bash -c "KINTO_SERVER_URL=$(KINTO_SERVER_URL) $(BIN)/ailoads -v -d 300 -u 10"
 
-clean: refresh
+clean:
 	rm -fr venv/ __pycache__/ *.pyc
 
 docker-build:
-	docker build -t kinto/loadtest .
+	docker build -t chartjes/kinto-loadtests .
 
 docker-run: loadtest.env
-	bash -c "docker run -e KINTO_DURATION=600 -e KINTO_NB_USERS=10 -e KINTO_SERVER_URL=$(KINTO_SERVER_URL) kinto/loadtest"
+	bash -c "docker run -e KINTO_DURATION=600 -e KINTO_NB_USERS=10 -e KINTO_SERVER_URL=$(KINTO_SERVER_URL) chartjes/kinto-loadtests"
 
 configure: build
 	@bash kinto.tpl
 
 docker-export:
-	docker save "kinto/loadtest:latest" | bzip2> kinto-latest.tar.bz2
+	docker save "chartjes/kint-loadtests:latest" | bzip2> kinto-latest.tar.bz2
