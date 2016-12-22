@@ -11,13 +11,13 @@
           "instance_count": 3,
           "instance_region": "us-east-1",
           "instance_type": "m3.large",
-          "run_max_time": 300,
+          "run_max_time": 600,
           "container_name": "chartjes/kinto-loadtests:latest",
           "environment_data": [
             "KINTO_METRICS_STATSD_SERVER=$STATSD_HOST:$STATSD_PORT",
             "KINTO_SERVER_URL=https://kinto.stage.mozaws.net:443",
             "KINTO_NB_USERS=100",
-            "KINTO_DURATION=60"
+            "KINTO_DURATION=500"
           ],
           "dns_name": "testcluster.mozilla.org",
           "port_mapping": "8080:8090,8081:8081,3000:3000",
