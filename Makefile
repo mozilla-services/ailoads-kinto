@@ -4,24 +4,25 @@ PYTHON = $(BIN)/python3
 
 INSTALL = $(BIN)/pip install
 
-KINTO_SERVER_URL = https://settings.stage.mozaws.net:443
+KINTO_SERVER_URL = https://webextensions-settings.stage.mozaws.net:443
+# KINTO_SERVER_URL = https://webextensions.settings.services.mozilla.com:443
 
 .PHONY: all test build
 
 all: build test
 
 $(PYTHON):
-	$(shell basename $(PYTHON)) -m venv $(VTENV_OPTS) venv
+	virtualenv --python python3 $(VTENV_OPTS) venv
 	$(BIN)/pip install requests requests_hawk flake8
-	$(BIN)/pip install https://github.com/tarekziade/ailoads/archive/master.zip
+	$(BIN)/pip install molotov
 build: $(PYTHON)
 
 test: build
-	bash -c "KINTO_SERVER_URL=$(KINTO_SERVER_URL) $(BIN)/ailoads -v -d 30"
+	bash -c "KINTO_SERVER_URL=$(KINTO_SERVER_URL) $(BIN)/molotov loadtest.py -c -v -d 10"
 	$(BIN)/flake8 loadtest.py
 
 test-heavy: build
-	bash -c "KINTO_SERVER_URL=$(KINTO_SERVER_URL) $(BIN)/ailoads -v -d 300 -u 10"
+	bash -c "KINTO_SERVER_URL=$(KINTO_SERVER_URL) $(BIN)/molotov loadtest.py -p 10 -w 200 -d 60 -qx"
 
 clean:
 	rm -fr venv/ __pycache__/ *.pyc
