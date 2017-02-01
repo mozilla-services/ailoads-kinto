@@ -1,6 +1,6 @@
-# ailoads-kinto
+# kinto-loadtests
 
-Kinto loadtest based on ailoads
+Generic load tests for Kinto based on ailoads
 
 ## Requirements
 
@@ -11,15 +11,11 @@ Kinto loadtest based on ailoads
 
 ### For stage
 
-    make test
+    make setup test
 
-or for a longer one:
+### For production
 
-    make test-heavy
-
-### You can change the destination URL
-
-    make test -e KINTO_SERVER_URL=https://kinto.dev.mozaws.net:443
+    make test 
 
 
 ## How to build the docker image?

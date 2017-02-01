@@ -1,40 +1,73 @@
+OS := $(shell uname)
 HERE = $(shell pwd)
+PYTHON = python3
+VTENV_OPTS = --python $(PYTHON)
+
 BIN = $(HERE)/venv/bin
-PYTHON = $(BIN)/python3
+VENV_PIP = $(BIN)/pip3
+VENV_PYTHON = $(BIN)/python
+INSTALL = $(VENV_PIP) install
 
-INSTALL = $(BIN)/pip install
+URL_KINTO_SERVER = https://kinto.stage.mozaws.net
 
-KINTO_SERVER_URL = https://webextensions-settings.stage.mozaws.net:443
-# KINTO_SERVER_URL = https://webextensions.settings.services.mozilla.com:443
+.PHONY: all check-os install-elcapitan install build
+.PHONY: configure
+.PHONY: docker-build docker-run docker-export
+.PHONY: test test-heavy refresh clean
 
-.PHONY: all test build
+all: build setup_random configure
 
-all: build test
 
-$(PYTHON):
-	virtualenv --python python3 $(VTENV_OPTS) venv
-	$(BIN)/pip install requests requests_hawk flake8
-	$(BIN)/pip install molotov
-build: $(PYTHON)
+# hack for OpenSSL problems on OS X El Captain:
+# https://github.com/phusion/passenger/issues/1630
+check-os:
+ifeq ($(OS),Darwin)
+  ifneq ($(USER),root)
+    $(info "clang now requires sudo, use: sudo make <target>.")
+    $(info "Aborting!") && exit 1
+  endif
+  BREW_PATH_OPENSSL=$(shell brew --prefix openssl)
+endif
 
+install-elcapitan: check-os
+	env LDFLAGS="-L$(BREW_PATH_OPENSSL)/lib" \
+	    CFLAGS="-I$(BREW_PATH_OPENSSL)/include" \
+	    $(INSTALL) cryptography
+
+$(VENV_PYTHON):
+	virtualenv $(VTENV_OPTS) venv
+
+install:
+	$(INSTALL) -r requirements.txt
+
+build: $(VENV_PYTHON) install-elcapitan install
+
+clean-env:
+	@rm -f loadtest.env
+
+
+configure: build
+	@bash loads.tpl
+
+
+#bash -c "source loadtest.env && URL_KINTO_SERVER=$(URL_KINTO_SERVER) $(BIN)/ailoads -v -d 30"
 test: build
-	bash -c "KINTO_SERVER_URL=$(KINTO_SERVER_URL) $(BIN)/molotov loadtest.py -c -v -d 10"
+	bash -c "URL_KINTO_SERVER=$(URL_KINTO_SERVER) $(BIN)/ailoads -v -d 30"
 	$(BIN)/flake8 loadtest.py
 
 test-heavy: build
-	bash -c "KINTO_SERVER_URL=$(KINTO_SERVER_URL) $(BIN)/molotov loadtest.py -p 10 -w 200 -d 60 -qx"
+	bash -c "source loadtest.env && URL_KINTO_SERVER=$(URL_KINTO_SERVER) $(BIN)/ailoads -v -d 300 -u 10"
 
-clean:
-	rm -fr venv/ __pycache__/ *.pyc
 
 docker-build:
 	docker build -t chartjes/kinto-loadtests .
 
-docker-run: loadtest.env
-	bash -c "docker run -e KINTO_DURATION=600 -e KINTO_NB_USERS=10 -e KINTO_SERVER_URL=$(KINTO_SERVER_URL) chartjes/kinto-loadtests"
-
-configure: build
-	@bash kinto.tpl
+docker-run:
+	bash -c "source loadtest.env; docker run -e TEST_DURATION=30 -e CONNECTIONS=4 kinto/loadtest"
 
 docker-export:
-	docker save "chartjes/kint-loadtests:latest" | bzip2> kinto-latest.tar.bz2
+	docker save "kinto/loadtest:latest" | bzip2> kinto-latest.tar.bz2
+
+
+clean: refresh
+	@rm -fr venv/ __pycache__/ loadtest.env

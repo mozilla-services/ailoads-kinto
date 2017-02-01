@@ -1,4 +1,5 @@
 requests
 requests_hawk
 flake8
+PyFxA
 molotov
