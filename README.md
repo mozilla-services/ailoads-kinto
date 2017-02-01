@@ -1,4 +1,13 @@
-# kinto-loadtests
+<font color='red'>This repo is deprecated.</font>
+
+<font color='red'>For Kinto loadtests, please see:</font>
+
+http://github.com/Kinto/kinto-loadtests
+
+
+
+
+# ailoads-kinto
 
 Generic load tests for Kinto based on ailoads
 
